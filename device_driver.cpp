@@ -1,17 +1,20 @@
 #include "device_driver.h"
+#include "custom_exception.h"
 
 DeviceDriver::DeviceDriver(FlashMemoryDevice* hardware) : m_hardware(hardware)
 {
 }
+const int TestTryCount = 4;
 
 int DeviceDriver::read(long address)
 {
-    // TODO: implement this method properly
-    (int)(m_hardware->read(address));
-    (int)(m_hardware->read(address));
-    (int)(m_hardware->read(address));
-    (int)(m_hardware->read(address));
-    return (int)(m_hardware->read(address));
+    int ret = (int)(m_hardware->read(address));
+
+    for (int turn = 0; turn < TestTryCount; turn++) {
+        int testvalue = (int)(m_hardware->read(address));
+        if (testvalue != ret) throw ReadFailException();
+    }
+    return (int)(ret);
 }
 
 void DeviceDriver::write(long address, int data)
