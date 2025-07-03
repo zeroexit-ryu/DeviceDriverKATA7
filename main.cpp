@@ -2,6 +2,8 @@
 #include "device_driver.h"
 #include "custom_exception.h"
 
+using namespace testing;
+
 class FlashMemoryDeviceMock : public FlashMemoryDevice {
 public:
 	//virtual unsigned char read(long address) = 0;
@@ -22,7 +24,6 @@ TEST(DeviceDriver, ReadFromHWWithCorrectAnswer) {
 		.Times(5)
 		.WillRepeatedly(testing::Return(0x5A));
 
-
 	int data = dd.read(0xFF);
 }
 
@@ -41,8 +42,31 @@ TEST(DeviceDriver, ReadFromHWWithErrorAnswer) {
 		.WillOnce(testing::Return(0x5E));
 
 	//EXPECT_THROW(dd.read(0xFF), std::ReadFailExcetion);
-	EXPECT_THROW(dd.read(0xFF), std::exception);
+	EXPECT_THROW(dd.read(0xFF), std::exception);	
+}
+
+TEST(DeviceDriver, WriteEmptyAddress) {
+	// Wrtie 영역이 0xFF로 되어 있다면 Write가 된다.
+	NiceMock<FlashMemoryDeviceMock> hw;
+	DeviceDriver dd{ &hw };
 	
+	EXPECT_CALL(hw, read(0xF))
+		.Times(1)
+		.WillOnce(testing::Return(0xFF));
+
+	dd.write((long)0xF, 0x5A);
+}
+
+TEST(DeviceDriver, WriteNotEmptyAddress) {
+	// Wrtie 영역이 0xFF가 아닌 값이 있다면 Exception 발생
+	FlashMemoryDeviceMock hw;
+	DeviceDriver dd{ &hw };
+
+	EXPECT_CALL(hw, read(0xF))
+		.Times(1)
+		.WillOnce(testing::Return(0xFA));
+
+	EXPECT_THROW(dd.write(0xF, 0x5A), std::exception);
 }
 
 //TEST(DeviceDriver, ReadFromHW) {
