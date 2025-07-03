@@ -1,6 +1,7 @@
 #include "gmock/gmock.h"
 #include "device_driver.h"
 #include "custom_exception.h"
+#include "Application.cpp"
 
 using namespace testing;
 
@@ -68,6 +69,53 @@ TEST(DeviceDriver, WriteNotEmptyAddress) {
 
 	EXPECT_THROW(dd.write(0xF, 0x5A), std::exception);
 }
+
+TEST(Application, ReadAndPrintBehaviorTest) {
+	FlashMemoryDeviceMock hw;
+	DeviceDriver dd{ &hw };
+	Application app{ &dd };
+
+	EXPECT_CALL(hw, read(_))
+		.Times(25)
+		.WillRepeatedly((testing::Return(0xFA)));
+
+	app.readAndPrint(0x0, 0x4);
+}
+
+TEST(Application, WriteAllTest) {
+	NiceMock<FlashMemoryDeviceMock> hw;
+	DeviceDriver dd{ &hw };
+	Application app{ &dd };
+
+	EXPECT_CALL(hw, read(_))
+		.Times(5)
+		.WillRepeatedly((testing::Return(0xFF)));
+
+	app.writeAll(0xA2);
+}
+
+//TEST(Application, ReadAndPrintTest) {
+//	FlashMemoryDeviceMock hw;
+//	DeviceDriver dd{ &hw };
+//	Application app{ &dd };
+//
+//	EXPECT_CALL(hw, read(0x0))
+//		.WillRepeatedly((testing::Return(9)));
+//	EXPECT_CALL(hw, read(0x1))
+//		.WillRepeatedly((testing::Return(8)));
+//	EXPECT_CALL(hw, read(0x2))
+//		.WillRepeatedly((testing::Return(7)));
+//	EXPECT_CALL(hw, read(0x3))
+//		.WillRepeatedly((testing::Return(6)));
+//	EXPECT_CALL(hw, read(0x4))
+//		.WillRepeatedly((testing::Return(5)));
+//	
+//	app.readAndPrint(0, 5);
+//
+//	//EXPECT_EQ("98765", app.readAndPrint(0, 5));
+//
+//	//app.writeAll();
+//}
 
 //TEST(DeviceDriver, ReadFromHW) {
 //	// TODO : replace hardware with a Test Double
